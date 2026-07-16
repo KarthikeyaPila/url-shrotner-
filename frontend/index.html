@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>URL Shortener</title>
+    <link rel="stylesheet" href="urlShortner.css">
+</head>
+
+<body>
+
+    <main>
+        <h1>URL Shortener</h1>
+        <p>Paste a URL and generate a shortened version.</p>
+
+        <form id="url-form">
+            <label for="input-url">Original URL: </label>
+            <input
+                type="url"
+                id="input-url"
+                placeholder="https://example.com">
+
+            <button type="submit">
+                Generate Short URL
+            </button>
+        </form>
+
+        <section id="result">
+            <h2>Your Short URL</h2>
+
+            <a href="#" id="short-url">
+                Your shortened URL will appear here
+            </a>
+
+            <button type="button" id="copy-btn">
+                Copy URL
+            </button>
+        </section>
+
+        <section id="history">
+            <h2>Previous Links</h2>
+
+            <select id="history-dropdown">
+                <option>Select a previous link</option>
+            </select>
+        </section>
+
+        <p id="status-message"></p> <!--for future lol-->
+    </main>
+</body>
+</html>
