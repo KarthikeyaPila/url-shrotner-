@@ -1,0 +1,130 @@
+:root {
+    --background: rgb(138, 110, 128);
+    --card: rgb(149, 187, 182);
+
+    --primary: rgb(95, 123, 120);
+    --primary-hover: rgb(78, 104, 101);
+
+    --border: rgb(115, 150, 145);
+    --link: rgb(47, 83, 117);
+
+    --text: rgb(40, 40, 40);
+}
+
+body {
+    background-color: var(--background);
+
+    min-height: 100vh;
+    margin: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+}
+
+main {
+    background-color: var(--card);
+
+    width: 450px;
+    max-width: 90%;
+
+    padding: 40px;
+    border-radius: 24px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#input-url {
+    padding: 10px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    font-size: 16px;
+
+    transition: border-color 0.1s ease, box-shadow 0.3s ease;
+}
+
+#input-url:focus {
+    outline: none;
+
+    border-color: var(--border);
+
+    box-shadow: 0 0 8px rgba(92, 126, 121, 0.4);
+}
+
+button {
+    padding: 10px 18px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: rgb(95, 123, 120);
+    color: white;
+
+    cursor: pointer;
+
+    font-size: 15px;
+    font-weight: bold;
+
+    transition: 0.1s;
+}
+
+button:hover {
+    background-color: rgb(78, 104, 101);
+
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#short-url {
+    color: rgb(47, 83, 117);
+
+    text-decoration: none;
+
+    font-weight: bold;
+}
+
+#short-url:hover {
+    text-decoration: underline;
+}
+
+#history {
+    margin-top: 35px;
+}
+
+select {
+    width: 100%;
+
+    padding: 10px;
+
+    border-radius: 8px;
+    border: 1px solid rgb(115, 150, 145);
+
+    font-size: 15px;
+}
+
+h1 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+h2 {
+    margin-bottom: 15px;
+}
+
+p {
+    margin-bottom: 25px;
+}
