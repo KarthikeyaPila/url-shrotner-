@@ -7,17 +7,23 @@ genUrlBtn.addEventListener("click", async (event) => {
     const longUrl = document.getElementById("input-url").value;
     console.log(longUrl);
 
-    document.getElementById("short-url").textContent = longUrl;
-    document.getElementById("short-url").href = longUrl;
+    const response = await fetch("http://localhost:8080/shortenUrl", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ longUrl }),
+    });
+
+    const data = await response.json();
+
+    document.getElementById("short-url").textContent = data.shortUrl;
+    document.getElementById("short-url").href = data.shortUrl;
 });
 
 copyBtn.addEventListener("click", async (event) => {
     event.preventDefault();
     
     const shortUrl = document.getElementById("short-url").textContent;
-    await copyTextToClipboard(shortUrl);
+    await navigator.clipboard.writeText(shortUrl);
 });
-
-async function copyTextToClipboard(text) {
-    await navigator.clipboard.writeText(text);
-}
