@@ -10,15 +10,15 @@ genUrlBtn.addEventListener("click", async (event) => {
     const response = await fetch("http://localhost:8080/shortenUrl", {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "text/plain",
         },
-        body: JSON.stringify({ longUrl }),
+        body: longUrl,
     });
 
-    const data = await response.json();
+    const data = await response.text();
 
-    document.getElementById("short-url").textContent = data.shortUrl;
-    document.getElementById("short-url").href = data.shortUrl;
+    document.getElementById("short-url").textContent = data;
+    document.getElementById("short-url").href = data;
 });
 
 copyBtn.addEventListener("click", async (event) => {
