@@ -9,9 +9,4 @@ public record CreateShortUrlRequest(
         String longUrl,
         @Size(max = 32, message = "alias must be at most 32 characters")
         String alias
-) {
-
-        public String longUrl() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'longUrl'");
-        } }
+) { }

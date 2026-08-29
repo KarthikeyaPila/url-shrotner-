@@ -1,6 +1,6 @@
 # URL Shortener — Progress Log
 
-Last updated: 2026-08-29
+Last updated: 2026-08-30
 
 ## Project goal
 
@@ -96,16 +96,27 @@ If Maven is not installed system-wide, install it with:
 sudo apt-get install maven
 ```
 
-## Authentication milestone — planned
+## Authentication milestone — manual authentication implemented
 
-Authentication has been designed but not implemented yet. The planned order is:
+The first authentication milestone is now implemented:
 
-1. Add Spring Security and a local `users` table.
-2. Add registration, login, logout, and `GET /api/auth/me`.
-3. Hash passwords with BCrypt or Argon2; never store plaintext passwords.
-4. Use HttpOnly cookie-based sessions rather than storing JWTs in `localStorage`.
-5. Preserve anonymous URL shortening while associating authenticated users with their own links.
-6. Add Google OAuth login as a second provider after manual authentication is working.
+- Added a local `app_users` table through the `User` JPA entity.
+- Added `POST /api/auth/register`.
+- Added `POST /api/auth/login`.
+- Added `POST /api/auth/logout`.
+- Added `GET /api/auth/me` for session restoration.
+- Added `GET /api/auth/csrf` for frontend CSRF-token setup.
+- Passwords are hashed with BCrypt and are never returned in API responses.
+- Authentication uses an HttpOnly session cookie.
+- Anonymous URL shortening remains available.
+- React now supports registration, login, logout, and session restoration.
+- Added backend tests for email normalization, password hashing, and duplicate emails.
+- Verified the complete authentication flow with a live HTTP smoke test against local PostgreSQL.
+- Fixed a regression in `CreateShortUrlRequest` where a generated TODO accessor caused authenticated shortening to return `500 Internal Server Error`.
+- Added a dismissible authentication overlay with login/register tabs and password visibility controls.
+- Documented the testing strategy and verification commands in `ARCHITECTURE_DECISIONS.md`.
+
+The next authentication stage is Google OAuth login as a second provider. User ownership and link history will follow once the account flow is established.
 
 See `ARCHITECTURE_DECISIONS.md` for the detailed data flows, security decisions, and reasoning behind this plan.
 

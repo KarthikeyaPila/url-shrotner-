@@ -219,6 +219,187 @@ footer {
     color: #63766a;
 }
 
+.text-button {
+    border: 0;
+    padding: 0;
+    color: #e96745;
+    background: transparent;
+    font: 500 12px 'DM Mono', monospace;
+    cursor: pointer;
+}
+
+.account-area {
+    color: #78827b;
+    font: 12px 'DM Mono', monospace;
+}
+
+.account-area .text-button {
+    margin-left: 12px;
+}
+
+.auth-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 36px;
+    margin-top: 42px;
+    padding: 28px;
+    background: #fffdf8;
+    border: 1px solid #dedbd2;
+}
+
+.auth-overlay {
+    position: fixed;
+    z-index: 10;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgb(22 35 30 / 58%);
+}
+
+.auth-modal {
+    position: relative;
+    width: min(680px, 100%);
+    margin: 0;
+    box-shadow: 12px 12px 0 rgb(215 227 213 / 80%);
+}
+
+.modal-close {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    border: 0;
+    color: #78827b;
+    background: transparent;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    color: #e96745;
+}
+
+.password-input {
+    display: flex;
+    align-items: stretch;
+    margin-top: 7px;
+    border: 1px solid #d7d8d1;
+    background: #f7f6f1;
+}
+
+.password-input input {
+    margin: 0;
+    border: 0;
+    background: transparent;
+}
+
+.password-input input:focus {
+    border: 0;
+}
+
+.password-input button {
+    border: 0;
+    padding: 0 12px;
+    color: #e96745;
+    background: transparent;
+    font: 500 11px 'DM Mono', monospace;
+    cursor: pointer;
+}
+
+.no-thanks {
+    grid-column: 1;
+    border: 0;
+    padding: 0;
+    color: #929991;
+    background: transparent;
+    font: 11px 'DM Mono', monospace;
+    cursor: pointer;
+}
+
+.no-thanks:hover {
+    color: #e96745;
+}
+
+.auth-heading h2 {
+    margin: 12px 0 8px;
+    font: 600 30px/1 'Space Grotesk', sans-serif;
+    letter-spacing: -.05em;
+}
+
+.auth-heading p {
+    margin: 0;
+    color: #69746e;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.auth-tabs {
+    display: flex;
+    align-items: start;
+    gap: 18px;
+    border-bottom: 1px solid #dedbd2;
+}
+
+.auth-tabs button {
+    border: 0;
+    padding: 0 0 10px;
+    color: #929991;
+    background: transparent;
+    font: 500 12px 'DM Mono', monospace;
+    cursor: pointer;
+}
+
+.auth-tabs button.active {
+    color: #16231e;
+    border-bottom: 2px solid #e96745;
+}
+
+.auth-card form {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: end;
+}
+
+.auth-card label {
+    display: block;
+    margin-bottom: 14px;
+    color: #69746e;
+    font: 500 11px 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+.auth-card input {
+    display: block;
+    width: 100%;
+    margin-top: 7px;
+    border: 1px solid #d7d8d1;
+    padding: 13px;
+    color: #16231e;
+    background: #f7f6f1;
+    font: 14px 'DM Mono', monospace;
+    outline: 0;
+}
+
+.auth-card input:focus {
+    border-color: #e96745;
+}
+
+.auth-submit {
+    width: 100%;
+    border: 0;
+    padding: 14px;
+    color: #fffdf8;
+    background: #16231e;
+    font: 700 13px 'DM Sans', sans-serif;
+    cursor: pointer;
+}
+
+.auth-submit:hover {
+    background: #e96745;
+}
+
 @media (max-width: 600px) {
     .page-shell {
         padding: 24px 18px;
@@ -237,9 +418,22 @@ footer {
     }
 
     .input-row,
-    .result-card {
+    .result-card,
+    .auth-card {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .auth-card {
+        display: block;
+    }
+
+    .auth-modal {
+        padding: 22px;
+    }
+
+    .auth-card form {
+        margin-top: 24px;
     }
 
     .input-row button {
