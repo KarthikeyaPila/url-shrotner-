@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react'
 
 const API_BASE = 'http://localhost:8080'
 
+function formatDate(value) {
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value))
+}
+
 async function readResponse(response) {
   if (response.status === 204) return null
   const data = await response.json().catch(() => ({}))
@@ -27,6 +31,10 @@ export default function App() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [links, setLinks] = useState([])
+  const [linksLoading, setLinksLoading] = useState(false)
+  const [linksError, setLinksError] = useState('')
+  const [linkActionTarget, setLinkActionTarget] = useState(null)
 
   useEffect(() => {
     async function restoreSession() {
@@ -37,8 +45,10 @@ export default function App() {
 
         const sessionResponse = await fetch(`${API_BASE}/api/auth/me`, { credentials: 'include' })
         if (sessionResponse.ok) {
-          setUser(await sessionResponse.json())
+          const restoredUser = await sessionResponse.json()
+          setUser(restoredUser)
           setShowAuthOverlay(false)
+          await loadMyLinks()
         } else {
           setShowAuthOverlay(true)
         }
@@ -86,6 +96,7 @@ export default function App() {
       setUser(loggedInUser)
       setPassword('')
       setShowAuthOverlay(false)
+      await loadMyLinks()
     } catch (requestError) {
       setAuthError(requestError.message === 'Failed to fetch'
         ? 'The API is not running. Start the Spring Boot backend and try again.'
@@ -100,6 +111,7 @@ export default function App() {
       await apiRequest('/api/auth/logout', { method: 'POST' })
     } finally {
       setUser(null)
+      setLinks([])
       setShowAuthOverlay(true)
     }
   }
@@ -117,6 +129,7 @@ export default function App() {
         body: JSON.stringify({ longUrl, alias: alias || null }),
       })
       setResult(data)
+      if (user) await loadMyLinks()
     } catch (requestError) {
       setError(requestError.message === 'Failed to fetch'
         ? 'The API is not running. Start the Spring Boot backend and try again.'
@@ -130,6 +143,47 @@ export default function App() {
     if (!result) return
     await navigator.clipboard.writeText(result.shortUrl)
     setCopied(true)
+  }
+
+  async function loadMyLinks() {
+    setLinksLoading(true)
+    setLinksError('')
+    try {
+      setLinks(await apiRequest('/api/urls/mine'))
+    } catch (requestError) {
+      setLinksError(requestError.message)
+    } finally {
+      setLinksLoading(false)
+    }
+  }
+
+  async function changeLinkStatus(code, active) {
+    try {
+      await apiRequest(`/api/urls/${code}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ active }),
+      })
+      await loadMyLinks()
+    } catch (requestError) {
+      setLinksError(requestError.message)
+    } finally {
+      setLinkActionTarget(null)
+    }
+  }
+
+  async function deleteLink(code) {
+    try {
+      await apiRequest(`/api/urls/${code}`, { method: 'DELETE' })
+      await loadMyLinks()
+    } catch (requestError) {
+      setLinksError(requestError.message)
+    } finally {
+      setLinkActionTarget(null)
+    }
+  }
+
+  async function copyLink(shortUrl) {
+    await navigator.clipboard.writeText(shortUrl)
   }
 
   function switchAuthMode(mode) {
@@ -165,9 +219,30 @@ export default function App() {
           {error && <p className="message error">{error}</p>}
         </form>
 
-        {result && <section className="result-card"><div><span className="result-label">YOUR SHORT LINK</span><a href={result.shortUrl}>{result.shortUrl}</a></div><button className="copy-button" onClick={copyUrl}>{copied ? 'Copied!' : 'Copy link'}</button></section>}
+        {result && <section className="result-card"><div><span className="result-label">YOUR SHORT LINK</span><a href={result.shortUrl} target="_blank" rel="noopener noreferrer">{result.shortUrl}</a></div><button className="copy-button" onClick={copyUrl}>{copied ? 'Copied!' : 'Copy link'}</button></section>}
+
+        {user && <section className="links-card">
+          <div className="links-heading"><div><span className="eyebrow">YOUR COLLECTION</span><h2>My links.</h2></div><button className="refresh-button" onClick={loadMyLinks} disabled={linksLoading}>↻ Refresh</button></div>
+          {linksError && <p className="message error">{linksError}</p>}
+          {linksLoading && <p className="links-empty">Loading your links…</p>}
+          {!linksLoading && !links.length && <p className="links-empty">Your created links will appear here.</p>}
+          {!linksLoading && links.length > 0 && <div className="links-list">{links.map((link) => <article className={`link-item ${link.deleted ? 'is-deleted' : ''}`} key={link.code}>
+            <div className="link-details"><div className="link-status">{link.deleted ? 'DELETED' : link.active ? 'ACTIVE' : 'INACTIVE'} {link.customAlias && <span>· {link.customAlias}</span>}</div><a className="link-short" href={link.active ? link.shortUrl : undefined} target={link.active ? '_blank' : undefined} rel={link.active ? 'noopener noreferrer' : undefined}>{link.shortUrl}</a><p title={link.longUrl}>{link.longUrl}</p><small>Created {formatDate(link.createdAt)} · Updated {formatDate(link.updatedAt)}</small></div>
+            {!link.deleted && <div className="link-actions"><button className="copy-button" onClick={() => copyLink(link.shortUrl)}>Copy</button>{link.active && <a className="open-button" href={link.shortUrl} target="_blank" rel="noopener noreferrer">Open</a>}<button className="manage-button" onClick={() => setLinkActionTarget(link)}>Manage</button></div>}
+          </article>)}</div>}
+        </section>}
 
       </section>
+
+      {linkActionTarget && <div className="auth-overlay" role="presentation">
+        <section className="action-modal" role="dialog" aria-modal="true" aria-labelledby="link-action-title">
+          <button className="modal-close" type="button" aria-label="Cancel" onClick={() => setLinkActionTarget(null)}>×</button>
+          <span className="eyebrow">LINK SETTINGS</span>
+          <h2 id="link-action-title">{linkActionTarget.active ? 'What would you like to do?' : 'This link is disabled.'}</h2>
+          <p className="action-description">{linkActionTarget.active ? 'You can pause this link and bring it back later, or remove it from your collection.' : 'Enable this link whenever you want it to start redirecting again.'}</p>
+          <div className="action-buttons">{linkActionTarget.active ? <button className="action-primary" onClick={() => changeLinkStatus(linkActionTarget.code, false)}>Disable link</button> : <button className="action-primary" onClick={() => changeLinkStatus(linkActionTarget.code, true)}>Enable link</button>}<button className="action-danger" onClick={() => deleteLink(linkActionTarget.code)}>Delete permanently</button><button className="action-cancel" onClick={() => setLinkActionTarget(null)}>Cancel</button></div>
+        </section>
+      </div>}
 
       {authReady && showAuthOverlay && !user && <div className="auth-overlay" role="presentation">
         <section className="auth-card auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">

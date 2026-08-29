@@ -1,7 +1,10 @@
 package com.urlshortener.url;
 
+import com.urlshortener.auth.User;
+
 import java.net.URI;
 import java.security.SecureRandom;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -21,19 +24,46 @@ public class ShortUrlService {
     }
 
     public ShortUrlResponse create(CreateShortUrlRequest request) {
+        return create(request, null);
+    }
+
+    public ShortUrlResponse create(CreateShortUrlRequest request, User owner) {
         String longUrl = request.longUrl().trim();
         validateUrl(longUrl);
 
         if (request.alias() != null && !request.alias().isBlank()) {
-            return createWithAlias(longUrl, request.alias().trim());
+            return createWithAlias(longUrl, request.alias().trim(), owner);
         }
 
-        ShortUrl saved = repository.save(new ShortUrl(longUrl, generateUniqueCode()));
+        ShortUrl saved = repository.save(new ShortUrl(longUrl, generateUniqueCode(), null, owner));
         return toResponse(saved);
     }
 
     public String resolve(String code) {
-        return repository.findByCode(code).orElseThrow(() -> new UrlNotFoundException(code)).getLongUrl();
+        return repository.findByCodeAndActiveTrue(code)
+                .orElseThrow(() -> new UrlNotFoundException(code)).getLongUrl();
+    }
+
+    public List<ShortUrlResponse> listMine(User owner) {
+        return repository.findAllByOwnerOrderByCreatedAtDesc(owner).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public void delete(String code, User owner) {
+        ShortUrl shortUrl = repository.findByCodeAndOwner(code, owner)
+                .orElseThrow(() -> new UrlNotFoundException(code));
+        if (shortUrl.isDeleted()) throw new UrlNotFoundException(code);
+        shortUrl.delete();
+        repository.save(shortUrl);
+    }
+
+    public void setActive(String code, boolean active, User owner) {
+        ShortUrl shortUrl = repository.findByCodeAndOwner(code, owner)
+                .orElseThrow(() -> new UrlNotFoundException(code));
+        if (shortUrl.isDeleted()) throw new UrlNotFoundException(code);
+        shortUrl.setActive(active);
+        repository.save(shortUrl);
     }
 
     private String generateUniqueCode() {
@@ -48,7 +78,7 @@ public class ShortUrlService {
         return code;
     }
 
-    private ShortUrlResponse createWithAlias(String longUrl, String alias) {
+    private ShortUrlResponse createWithAlias(String longUrl, String alias, User owner) {
         if (!alias.matches("[A-Za-z0-9_-]+")) {
             throw new InvalidAliasException();
         }
@@ -56,12 +86,26 @@ public class ShortUrlService {
         Optional<ShortUrl> existing = repository.findByCode(alias);
         if (existing.isPresent()) {
             if (existing.get().getLongUrl().equals(longUrl)) {
-                return toResponse(existing.get());
+                if (existing.get().isDeleted()
+                        && owner != null
+                        && existing.get().getOwner() != null
+                        && existing.get().getOwner().getId().equals(owner.getId())) {
+                    existing.get().restore(longUrl);
+                    return toResponse(repository.save(existing.get()));
+                }
+                if (!existing.get().isDeleted()) return toResponse(existing.get());
+            }
+            if (existing.get().isDeleted()
+                    && owner != null
+                    && existing.get().getOwner() != null
+                    && existing.get().getOwner().getId().equals(owner.getId())) {
+                existing.get().restore(longUrl);
+                return toResponse(repository.save(existing.get()));
             }
             throw new AliasAlreadyExistsException(alias);
         }
 
-        return toResponse(repository.save(new ShortUrl(longUrl, alias)));
+        return toResponse(repository.save(new ShortUrl(longUrl, alias, alias, owner)));
     }
 
     private void validateUrl(String value) {
@@ -75,6 +119,17 @@ public class ShortUrlService {
     }
 
     private ShortUrlResponse toResponse(ShortUrl shortUrl) {
-        return new ShortUrlResponse(shortUrl.getCode(), baseUrl + "/" + shortUrl.getCode(), shortUrl.getLongUrl(), shortUrl.getCreatedAt());
+        return new ShortUrlResponse(
+                shortUrl.getCode(),
+                baseUrl + "/" + shortUrl.getCode(),
+                shortUrl.getLongUrl(),
+                shortUrl.getCustomAlias(),
+                shortUrl.getCreatedAt(),
+                shortUrl.getUpdatedAt(),
+                shortUrl.getExpiresAt(),
+                shortUrl.getDisabledAt(),
+                shortUrl.isActive(),
+                shortUrl.isDeleted()
+        );
     }
 }

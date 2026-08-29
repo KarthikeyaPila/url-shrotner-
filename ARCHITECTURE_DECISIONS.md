@@ -95,8 +95,28 @@ Current status choices include:
 - Custom aliases may contain letters, numbers, `-`, and `_`.
 - Alias collisions return `409 Conflict`.
 - Repeating the same alias with the same long URL returns the existing link; using that alias for a different URL is rejected.
-- Anonymous shortening remains supported while authentication is introduced.
-- A future `user_id` on `short_urls` may be nullable so existing anonymous links continue to work.
+- Reusing a deleted alias by its original owner restores that record with the submitted destination URL.
+- A deleted alias owned by another user remains unavailable.
+- Anonymous shortening remains supported alongside authenticated ownership.
+- `user_id` on `short_urls` is nullable so anonymous links continue to work.
+
+The user-ownership milestone is now implemented. Newly created authenticated links store their owner, while anonymous links keep a null owner. Each link now also records or exposes:
+
+```text
+short_urls
+├── code
+├── long_url
+├── custom_alias
+├── user_id, nullable for anonymous links
+├── created_at
+├── updated_at
+├── expires_at, reserved for a future feature
+├── disabled_at
+├── active
+└── deleted_at, used for soft deletion
+```
+
+Click count and last-clicked time are intentionally not included yet.
 
 ## Authentication direction
 
@@ -133,7 +153,7 @@ Google login should eventually create or locate the same local user record rathe
 
 ## Manual authentication flow
 
-The planned endpoints are:
+The authentication endpoints are:
 
 ```text
 POST /api/auth/register
@@ -174,7 +194,7 @@ Secure session cookie is created
 Later requests identify the logged-in user
 ```
 
-`GET /api/auth/me` will allow React to restore authentication state after a page refresh.
+`GET /api/auth/me` allows React to restore authentication state after a page refresh.
 
 ## Authentication storage decision
 
@@ -190,9 +210,9 @@ Reasons:
 
 Because the frontend and backend currently run on different local ports, CORS and credential settings must be configured carefully. Production should use HTTPS and secure cookie settings.
 
-## Planned user and ownership model
+## User ownership and link history
 
-The initial user table is expected to contain:
+The user table contains:
 
 ```text
 users
@@ -204,7 +224,7 @@ users
 └── created_at
 ```
 
-The first authenticated version should preserve anonymous use:
+The ownership model preserves anonymous use:
 
 ```text
 Anonymous user:
@@ -216,6 +236,7 @@ Logged-in user:
 - Can create a short URL
 - The link belongs to their account
 - Can view their own links
+- Can soft-delete their own active links
 ```
 
 This lets authentication enhance the application without breaking the existing MVP.
@@ -385,6 +406,13 @@ This catches presentation and browser-specific issues that command-line tests ca
 - The live authentication smoke test completed registration, login, session lookup, and logout.
 - The frontend sends cookies and CSRF headers for API requests.
 - Authenticated URL creation returns `201` after login and persists the short URL normally.
+- The browser's `DELETE /api/urls/{code}` preflight returns `200` with credentials and `DELETE` allowed.
+- Deleting an owned link returns `204`; the public redirect then returns `404`.
+- Reusing a deleted alias by its owner returns `201`, restores the record as active, and makes it available in `My Links` again.
+
+### Delete-route regression and fix
+
+The frontend correctly called `DELETE /api/urls/{code}`, but the backend route had accidentally been declared as `DELETE /{code}`. CORS also allowed `GET`, `POST`, and `OPTIONS` but not `DELETE`. Browsers therefore stopped at the preflight request and reported a network error before the delete request reached the backend. The route and CORS method list now match the frontend request.
 
 ### Recent regression and fix
 
@@ -438,15 +466,50 @@ user_identities
 
 Manual and Google credentials should point to one local user. Automatically merging a Google identity into an existing local account based only on matching email is risky, so explicit account linking is preferred.
 
-## Planned authenticated features
+The authenticated link-history API is:
+
+```text
+GET    /api/urls/mine    Return the current user's links
+DELETE /api/urls/{code}  Soft-delete one of the current user's active links
+PATCH  /api/urls/{code}/status  Enable or disable one of the user's links
+```
+
+The frontend displays a `My Links` collection with:
+
+- Original URL
+- Short URL
+- Custom alias when present
+- Created date
+- Last updated date
+- Active or deleted status
+- Copy action for active and disabled links
+- Open action for active links only
+- Manage action for active and disabled links
+- No actions for deleted links
+
+Active links open in a new browser tab using `target="_blank"` with `rel="noopener noreferrer"`; disabled links cannot be opened until enabled.
+
+Deletion is terminal soft deletion: the record remains available in the owner's history with a deleted status, but the public redirect stops working and the user cannot restore it. Disabling is reversible: the record remains in the owner's history with a disabled status and can later be enabled. The endpoints derive the owner from the session and never trust a user ID supplied by the frontend.
+
+The status model is represented with the current fields as follows:
+
+```text
+active=true,  deletedAt=null  → ACTIVE
+active=false, deletedAt=null  → DISABLED
+active=false, deletedAt!=null → DELETED
+```
+
+The dashboard's Manage action opens a confirmation modal with Enable or Disable, Delete permanently, and Cancel choices.
+
+### Planned authenticated features
 
 After the basic login system is complete, likely additions are:
 
-- `GET /api/urls/mine` for link history
-- `DELETE /api/urls/{code}` for link management
 - A React login and registration interface
 - A user identity indicator and logout control
 - Ownership-aware access checks
+- Pagination, filtering, and search for larger link histories
+- Click counts and analytics
 - Google login
 - Expiration dates
 - Click analytics

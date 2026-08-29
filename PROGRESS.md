@@ -116,7 +116,24 @@ The first authentication milestone is now implemented:
 - Added a dismissible authentication overlay with login/register tabs and password visibility controls.
 - Documented the testing strategy and verification commands in `ARCHITECTURE_DECISIONS.md`.
 
-The next authentication stage is Google OAuth login as a second provider. User ownership and link history will follow once the account flow is established.
+The next authentication stage is Google OAuth login as a second provider. User ownership and link history are now implemented; click analytics remain a future feature.
+
+## Link ownership and history milestone — implemented
+
+- Authenticated links are associated with their session user.
+- Anonymous links remain supported with no owner.
+- Added custom alias, updated date, expiration placeholder, active state, and deleted timestamp metadata.
+- Added `GET /api/urls/mine`.
+- Added soft-delete support for a user’s own active links.
+- Added the React `My Links` collection with original URL, short URL, dates, status, copy, open, and delete actions.
+- Click count and last-clicked date are intentionally deferred.
+- Fixed link deletion by aligning the backend route with `DELETE /api/urls/{code}` and allowing authenticated `DELETE` CORS preflight requests.
+- Added reversible disable/enable status changes through `PATCH /api/urls/{code}/status`.
+- Replaced the direct dashboard delete action with a Manage modal offering Disable/Enable, Delete permanently, and Cancel.
+- Removed Copy and other actions from deleted-link rows; disabled links retain Copy and Manage actions.
+- Open actions now open active short links in a new tab.
+- Reusing a deleted alias by its owner restores the link instead of causing a duplicate-code server error.
+- Verified the full status flow: disabled redirects return `404`, re-enabled redirects return `302`, and deleted redirects return `404`.
 
 See `ARCHITECTURE_DECISIONS.md` for the detailed data flows, security decisions, and reasoning behind this plan.
 
@@ -125,8 +142,8 @@ See `ARCHITECTURE_DECISIONS.md` for the detailed data flows, security decisions,
 1. Run the full application and test shortening, redirecting, invalid URLs, and duplicate aliases.
 2. Add automated Spring Boot controller/service tests.
 3. Add a `GET /api/urls/{code}` lookup endpoint if the frontend needs it.
-4. Add link history in the React frontend.
-5. Improve database constraints and handle rare generated-code collisions safely under concurrency.
+4. Improve database constraints and handle rare generated-code collisions safely under concurrency.
+5. Add pagination, filtering, and search to link history.
 6. Add expiration dates.
 7. Add analytics such as click counts.
 8. Add QR-code generation.
