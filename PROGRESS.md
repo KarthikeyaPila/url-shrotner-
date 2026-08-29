@@ -133,6 +133,10 @@ The next authentication stage is Google OAuth login as a second provider. User o
 - Removed Copy and other actions from deleted-link rows; disabled links retain Copy and Manage actions.
 - Open actions now open active short links in a new tab.
 - Reusing a deleted alias by its owner restores the link instead of causing a duplicate-code server error.
+- Added the read-only admin console with overview, users, and links views.
+- Added role-aware user responses and `ROLE_ADMIN` protection for `/api/admin/**`.
+- Promoted the requested local account to `ADMIN` without storing its email in source code.
+- Verified admin authorization: unauthenticated requests return `401` and normal-user requests return `403`.
 - Verified the full status flow: disabled redirects return `404`, re-enabled redirects return `302`, and deleted redirects return `404`.
 
 See `ARCHITECTURE_DECISIONS.md` for the detailed data flows, security decisions, and reasoning behind this plan.

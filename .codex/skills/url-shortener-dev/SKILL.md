@@ -12,7 +12,7 @@ Use for implementation, debugging, testing, or architecture work in this reposit
 - Backend: Java 21 + Spring Boot in `backend/spring`; PostgreSQL via JPA.
 - Frontend: React + Vite in `frontend/react-app`.
 - Current auth: manual email/password, BCrypt, session cookie, CSRF; Google OAuth is planned.
-- Anonymous shortening remains public. User ownership/history is planned, not assumed.
+- Anonymous shortening remains public. Authenticated links belong to their session user; `/api/admin/**` requires `ROLE_ADMIN`.
 - Preserve `backend/Main.java` and `frontend/old/` as historical experiments.
 
 ## Rules

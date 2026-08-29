@@ -12,4 +12,5 @@ public interface ShortUrlRepository extends JpaRepository<ShortUrl, Long> {
     Optional<ShortUrl> findByCodeAndActiveTrue(String code);
     List<ShortUrl> findAllByOwnerOrderByCreatedAtDesc(User owner);
     Optional<ShortUrl> findByCodeAndOwner(String code, User owner);
+    long countByOwner(User owner);
 }

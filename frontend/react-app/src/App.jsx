@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import AdminPanel from './AdminPanel.jsx'
 
 const API_BASE = 'http://localhost:8080'
 
@@ -35,6 +36,7 @@ export default function App() {
   const [linksLoading, setLinksLoading] = useState(false)
   const [linksError, setLinksError] = useState('')
   const [linkActionTarget, setLinkActionTarget] = useState(null)
+  const [adminView, setAdminView] = useState(false)
 
   useEffect(() => {
     async function restoreSession() {
@@ -112,6 +114,7 @@ export default function App() {
     } finally {
       setUser(null)
       setLinks([])
+      setAdminView(false)
       setShowAuthOverlay(true)
     }
   }
@@ -202,11 +205,12 @@ export default function App() {
       <nav className="nav">
         <span className="brand"><span className="brand-mark">↗</span> shortly</span>
         {authReady && (user
-          ? <span className="account-area">Hi, {user.displayName} <button className="text-button" onClick={logout}>Log out</button></span>
+          ? <span className="account-area">Hi, {user.displayName} {user.role === 'ADMIN' && <button className="text-button" onClick={() => setAdminView(!adminView)}>{adminView ? 'App' : 'Admin'}</button>}<button className="text-button" onClick={logout}>Log out</button></span>
           : <button className="text-button" onClick={() => openAuthOverlay()}>Log in</button>)}
       </nav>
 
       <section className="hero">
+        {adminView && user?.role === 'ADMIN' ? <AdminPanel apiRequest={apiRequest} user={user} onBack={() => setAdminView(false)} /> : <div className="app-content">
         <div className="eyebrow">URL SHORTENER · MVP</div>
         <h1>Make the web<br /><em>a little shorter.</em></h1>
         <p className="intro">Turn long, unwieldy links into clean little shortcuts. No accounts, no expiry dates—just a link that works.</p>
@@ -232,6 +236,7 @@ export default function App() {
           </article>)}</div>}
         </section>}
 
+        </div>}
       </section>
 
       {linkActionTarget && <div className="auth-overlay" role="presentation">

@@ -513,6 +513,41 @@ After the basic login system is complete, likely additions are:
 - Google login
 - Expiration dates
 - Click analytics
+
+## Admin console milestone
+
+The first admin milestone is implemented as a protected, read-only console. It is separate from the normal user's `My Links` collection.
+
+The admin APIs are:
+
+```text
+GET /api/admin/summary  Overview counts plus recent users and links
+GET /api/admin/users    User list with role and link count
+GET /api/admin/urls     Link list with owner and status
+```
+
+All `/api/admin/**` routes require `ROLE_ADMIN`. The browser never connects directly to PostgreSQL; the backend performs all queries and authorization checks.
+
+The console contains:
+
+- Overview cards for total users, total links, active, disabled, and deleted links
+- Recent users
+- Recent links
+- Read-only Users tab
+- Read-only Links tab
+- Responsive layout matching the main application
+
+The `role` field is now included in the authenticated user response. React shows the Admin Console control only when the server-reported role is `ADMIN`; this frontend check is only a display convenience, not the security boundary.
+
+The first local administrator was promoted directly in the local database after registering normally. The email is intentionally not stored in source code or documentation. Production will need a separate secure bootstrap process.
+
+The admin authorization contract is:
+
+```text
+No session → /api/admin/summary returns 401
+Normal user → /api/admin/summary returns 403
+Admin user → is allowed to read the admin summary/users/links APIs
+```
 - QR-code generation
 - Docker and deployment configuration
 
