@@ -6,19 +6,25 @@ genUrlBtn.addEventListener("click", async (event) => {
     
     const longUrl = document.getElementById("input-url").value;
     console.log(longUrl);
+    if (!longUrl.trim()) {
+        alert("Please enter a URL.");
+        return;
+    }   
 
     const response = await fetch("http://localhost:8080/shortenUrl", {
         method: "POST",
         headers: {
-            "Content-Type": "text/plain",
+            "Content-Type": "application/json",
         },
-        body: longUrl,
+        body: JSON.stringify({
+            longUrl: longUrl
+        })
     });
 
-    const data = await response.text();
+    const result = await response.json();
 
-    document.getElementById("short-url").textContent = data;
-    document.getElementById("short-url").href = data;
+    document.getElementById("short-url").textContent = result.shortUrl;
+    document.getElementById("short-url").href = data.shortUrl;
 });
 
 copyBtn.addEventListener("click", async (event) => {
