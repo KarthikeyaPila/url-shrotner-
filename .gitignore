@@ -2,3 +2,6 @@ backend/spring/target/
 frontend/react-app/node_modules/
 frontend/react-app/dist/
 *.class
+.vscode/
+.codex/
+/docs
