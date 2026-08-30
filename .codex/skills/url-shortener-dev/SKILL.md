@@ -22,6 +22,7 @@ Use for implementation, debugging, testing, or architecture work in this reposit
 - Never store, log, or return plaintext passwords or password hashes.
 - Keep validation in the backend and add focused tests for behavior changes.
 - Update `PROGRESS.md` and `ARCHITECTURE_DECISIONS.md` for durable decisions or flows.
+- For code review, use `CODE_REVIEW_NOTES.md`; for security-sensitive work, use `SECURITY_REVIEW.md` and distinguish existing controls from open risks.
 - Preserve unrelated user changes.
 
 ## Verification
