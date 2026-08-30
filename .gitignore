@@ -5,3 +5,4 @@ frontend/react-app/dist/
 .vscode/
 .codex/
 /docs
+.codex
